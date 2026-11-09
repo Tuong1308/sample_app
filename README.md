@@ -4,6 +4,7 @@
 > **Ngày học:** 09/11/2026
 > **Tài liệu:** Ruby on Rails Tutorial (Michael Hartl) – Chapter 3
 > **Nhánh:** `chapter_3_MostlyStaticPages`
+> **Demo (Render):** https://sample-app-3-yd95.onrender.com/
 
 ---
 
@@ -37,9 +38,11 @@ Chapter 3 xây dựng `sample_app` với các trang tĩnh (Home, Help, About, Co
 ### 3.1. Set up project
 - Tạo `sample_app`, thêm README, commit và push lên GitHub.
 - Bài tập 1: kiểm tra README đã hiển thị trên GitHub. ✅
-- Bài tập 2: kiểm tra deploy. ✅
+- Bài tập 2: kiểm tra deploy lên Render: https://sample-app-3-yd95.onrender.com/ ✅
 
-![Ảnh 3.1](<link ảnh>)
+*Ứng dụng đã deploy trên Render hiển thị "hello, world!"*
+
+![Ứng dụng đã deploy trên Render hiển thị "hello, world!"](assets/Screenshot%202026-11-09%20102814.png)
 
 ### 3.2. Static Pages controller
 
@@ -51,6 +54,30 @@ Rails tự tạo: controller, 2 route (`get 'static_pages/home'`, `get 'static_p
 
 Luồng xử lý: `Browser → routes.rb → StaticPagesController#home → home.html.erb`.
 
+*Output của `rails generate controller StaticPages home help`*
+
+![Output của `rails generate controller StaticPages home help`](assets/Screenshot%202026-11-09%20104004.png)
+
+*Trang Home mặc định do Rails sinh ra*
+
+![Trang Home mặc định do Rails sinh ra](assets/Screenshot%202026-11-09%20111240.png)
+
+*Trang Home sau khi viết HTML*
+
+![Trang Home sau khi viết HTML](assets/Screenshot%202026-11-09%20113449.png)
+
+*Trang Help sau khi viết HTML*
+
+![Trang Help sau khi viết HTML](assets/Screenshot%202026-11-09%20113505.png)
+
+*Test mặc định cho Home và Help*
+
+![Test mặc định cho Home và Help](assets/Screenshot%202026-11-09%20114710.png)
+
+*`rails test`: 2 runs, 2 assertions, 0 failures*
+
+![`rails test`: 2 runs, 2 assertions, 0 failures](assets/Screenshot%202026-11-09%20115104.png)
+
 **Bài tập:**
 
 | # | Yêu cầu | Trạng thái |
@@ -58,7 +85,13 @@ Luồng xử lý: `Browser → routes.rb → StaticPagesController#home → home
 | 1 | Tạo controller `Foo` với 2 action `bar`, `baz` | ✅ |
 | 2 | Xóa controller và 2 action vừa tạo (`rails destroy`) | ✅ |
 
-![Ảnh 3.2](<link ảnh>)
+*Bài tập 1: `rails generate controller Foo bar baz`*
+
+![Bài tập 1: `rails generate controller Foo bar baz`](assets/Screenshot%202026-11-09%20112623.png)
+
+*Bài tập 2: `rails destroy controller Foo bar baz`*
+
+![Bài tập 2: `rails destroy controller Foo bar baz`](assets/Screenshot%202026-11-09%20112720.png)
 
 ### 3.3. Thêm trang About theo TDD
 
@@ -67,23 +100,87 @@ Vòng lặp: **đọc lỗi → sửa đúng chỗ lỗi chỉ ra → chạy l�
 | Bước | Lỗi khi chạy `rails test` | Cách sửa |
 |---|---|---|
 | Red | `undefined local variable or method 'static_pages_about_url'` | Thêm `get 'static_pages/about'` vào `routes.rb` |
-| Red | `ActionNotFound: The action 'about' could not be found` | Thêm `def about; end` vào controller |
-| Red | `missing a template for this request format` | `touch app/views/static_pages/about.html.erb` và điền nội dung |
-| **Green** | `3 tests, 3 assertions, 0 failures` | Hoàn thành |
+| Red | `Expected response to be a <2XX: success>, but was a <404: Not Found>` (chưa có action) | Thêm `def about; end` vào controller |
+| Red | `Expected response to be a <2XX: success>, but was a <406: Not Acceptable>` (chưa có template) | `touch app/views/static_pages/about.html.erb` và điền nội dung |
+| **Green** | `3 runs, 3 assertions, 0 failures` | Hoàn thành |
 
-![Ảnh 3.3](<link ảnh>)
+> Sách (Rails 6) báo lỗi `ActionNotFound` và `missing a template`; Rails 8 trong test trả về mã HTTP 404 và 406 thay cho các lỗi này.
+
+*Thêm test `should get about`*
+
+![Thêm test `should get about`](assets/Screenshot%202026-11-09%20115424.png)
+
+*Red: `undefined local variable or method 'static_pages_about_url'`*
+
+![Red: `undefined local variable or method 'static_pages_about_url'`](assets/Screenshot%202026-11-09%20115547.png)
+
+*Red: sau khi thêm route, test báo 404 Not Found*
+
+![Red: sau khi thêm route, test báo 404 Not Found](assets/Screenshot%202026-11-09%20121944.png)
+
+*Thêm action `about` vào controller*
+
+![Thêm action `about` vào controller](assets/Screenshot%202026-11-09%20122059.png)
+
+*Red: thiếu template, test báo 406 Not Acceptable*
+
+![Red: thiếu template, test báo 406 Not Acceptable](assets/Screenshot%202026-11-09%20122304.png)
+
+*Tạo `about.html.erb` bằng `touch` và điền nội dung*
+
+![Tạo `about.html.erb` bằng `touch` và điền nội dung](assets/Screenshot%202026-11-09%20122506.png)
+
+*Green: 3 runs, 3 assertions, 0 failures*
+
+![Green: 3 runs, 3 assertions, 0 failures](assets/Screenshot%202026-11-09%20122613.png)
+
+*Trang About trên trình duyệt*
+
+![Trang About trên trình duyệt](assets/Screenshot%202026-11-09%20122659.png)
 
 ### 3.4. Trang có title động
 
-**Red:** thêm `assert_select "title", "<Tên trang> | Ruby on Rails Tutorial Sample App"` vào test của từng trang. Kết quả `3 tests, 6 assertions, 3 failures`.
+**Red:** thêm `assert_select "title", "<Tên trang> | Ruby on Rails Tutorial Sample App"` vào test của từng trang. Kết quả `3 runs, 9 assertions, 3 failures` (không tìm thấy thẻ `title`).
+
+*Thêm `assert_select "title"` cho từng trang*
+
+![Thêm `assert_select "title"` cho từng trang](assets/Screenshot%202026-11-09%20125516.png)
+
+*Red: không tìm thấy thẻ `title`, 3 failures*
+
+![Red: không tìm thấy thẻ `title`, 3 failures](assets/Screenshot%202026-11-09%20130021.png)
 
 **Green:** viết đầy đủ khung HTML và `<title>` cho từng view, test pass.
+
+*Trang About đã có title trên tab trình duyệt*
+
+![Trang About đã có title trên tab trình duyệt](assets/Screenshot%202026-11-09%20130505.png)
+
+*Green: 3 runs, 9 assertions, 0 failures*
+
+![Green: 3 runs, 9 assertions, 0 failures](assets/Screenshot%202026-11-09%20130615.png)
 
 **Refactor:**
 1. Ba view đều dùng `<% provide(:title, "...") %>` và `<title><%= yield(:title) %> | Ruby on Rails Tutorial Sample App</title>`.
 2. Bật lại layout: `mv layout_file app/views/layouts/application.html.erb`, sửa dòng `<title>` trong layout.
 3. Xóa phần khung HTML thừa trong 3 view, chỉ giữ `provide` và nội dung riêng.
 4. `rails test` vẫn green.
+
+*Bước 1: view dùng `provide` và `yield(:title)`*
+
+![Bước 1: view dùng `provide` và `yield(:title)`](assets/Screenshot%202026-11-09%20132823.png)
+
+*Test vẫn green sau bước 1*
+
+![Test vẫn green sau bước 1](assets/Screenshot%202026-11-09%20132943.png)
+
+*Bước 3: view chỉ còn `provide` và nội dung riêng*
+
+![Bước 3: view chỉ còn `provide` và nội dung riêng](assets/Screenshot%202026-11-09%20133606.png)
+
+*Test vẫn green sau khi bật lại layout*
+
+![Test vẫn green sau khi bật lại layout](assets/Screenshot%202026-11-09%20133650.png)
 
 **Bài tập:**
 
@@ -92,7 +189,53 @@ Vòng lặp: **đọc lỗi → sửa đúng chỗ lỗi chỉ ra → chạy l�
 | 1 | Gom `base_title` bằng `setup` và `@base_title` | ✅ |
 | 2 | Tạo trang Contact theo chu trình Red → Green | ✅ |
 
-![Ảnh 3.4](<link ảnh>)
+**Bài tập 1: `setup` và `@base_title`**
+
+*Dùng `setup` và `@base_title` trong test*
+
+![Dùng `setup` và `@base_title` trong test](assets/Screenshot%202026-11-09%20131406.png)
+
+*Test green sau khi refactor*
+
+![Test green sau khi refactor](assets/Screenshot%202026-11-09%20131443.png)
+
+**Bài tập 2: trang Contact**
+
+*Thêm test `should get contact`*
+
+![Thêm test `should get contact`](assets/Screenshot%202026-11-09%20134754.png)
+
+*Red: `undefined local variable or method 'static_pages_contact_url'`*
+
+![Red: `undefined local variable or method 'static_pages_contact_url'`](assets/Screenshot%202026-11-09%20134911.png)
+
+*Thêm route `static_pages/contact`*
+
+![Thêm route `static_pages/contact`](assets/Screenshot%202026-11-09%20135054.png)
+
+*Red: 404 Not Found*
+
+![Red: 404 Not Found](assets/Screenshot%202026-11-09%20135134.png)
+
+*Thêm action `contact`*
+
+![Thêm action `contact`](assets/Screenshot%202026-11-09%20135259.png)
+
+*Red: 406 Not Acceptable (thiếu template)*
+
+![Red: 406 Not Acceptable (thiếu template)](assets/Screenshot%202026-11-09%20135435.png)
+
+*View `contact.html.erb`*
+
+![View `contact.html.erb`](assets/Screenshot%202026-11-09%20135610.png)
+
+*Green: 4 runs, 12 assertions, 0 failures*
+
+![Green: 4 runs, 12 assertions, 0 failures](assets/Screenshot%202026-11-09%20135739.png)
+
+*Trang Contact trên trình duyệt*
+
+![Trang Contact trên trình duyệt](assets/Screenshot%202026-11-09%20135754.png)
 
 ### 3.4.4. Root route
 
@@ -103,13 +246,53 @@ Vòng lặp: **đọc lỗi → sửa đúng chỗ lỗi chỉ ra → chạy l�
 | 1 | Viết test `get root_url` + `assert_response :success` | ✅ |
 | 2 | Comment root route → test **đỏ**, bỏ comment → test **xanh** | ✅ |
 
-![Ảnh root route](<link ảnh>)
+*Đặt `root 'static_pages#home'` trong `routes.rb`*
+
+![Đặt `root 'static_pages#home'` trong `routes.rb`](assets/Screenshot%202026-11-09%20140021.png)
+
+*Thêm test `should get root`*
+
+![Thêm test `should get root`](assets/Screenshot%202026-11-09%20140526.png)
+
+*Comment root route*
+
+![Comment root route](assets/Screenshot%202026-11-09%20140534.png)
+
+*Red: `undefined local variable or method 'root_url'`*
+
+![Red: `undefined local variable or method 'root_url'`](assets/Screenshot%202026-11-09%20140658.png)
+
+*Bỏ comment, test green: 5 runs, 13 assertions*
+
+![Bỏ comment, test green: 5 runs, 13 assertions](assets/Screenshot%202026-11-09%20140847.png)
+
+*Truy cập `/` hiển thị trang Home*
+
+![Truy cập `/` hiển thị trang Home](assets/Screenshot%202026-11-09%20140939.png)
 
 ### 3.6. Advanced testing setup (tùy chọn)
 - 3.6.1 minitest reporters: thêm `require "minitest/reporters"` và `Minitest::Reporters.use!` vào `test/test_helper.rb`, kết quả test hiển thị màu đỏ/xanh rõ ràng. ✅
 - 3.6.2 Guard: `bundle exec guard init`, cấu hình `Guardfile`, chạy `bundle exec guard` để tự chạy test khi lưu file. ✅
 
-![Ảnh 3.6](<link ảnh>)
+*Thêm gem `minitest-reporters` vào nhóm `:test`*
+
+![Thêm gem `minitest-reporters` vào nhóm `:test`](assets/Screenshot%202026-11-09%20141646.png)
+
+*Cấu hình `test/test_helper.rb`*
+
+![Cấu hình `test/test_helper.rb`](assets/Screenshot%202026-11-09%20141704.png)
+
+*Kết quả test có màu và thanh tiến trình*
+
+![Kết quả test có màu và thanh tiến trình](assets/Screenshot%202026-11-09%20141820.png)
+
+*Thêm gem `guard` và `guard-minitest`*
+
+![Thêm gem `guard` và `guard-minitest`](assets/Screenshot%202026-11-09%20142027.png)
+
+*`bundle exec guard` tự chạy test*
+
+![`bundle exec guard` tự chạy test](assets/Screenshot%202026-11-09%20142241.png)
 
 ---
 
