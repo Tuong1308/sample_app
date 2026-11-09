@@ -33,7 +33,58 @@ Chapter 3 xây dựng `sample_app` với các trang tĩnh (Home, Help, About, Co
 
 ---
 
-## 3. Các bước đã thực hiện
+## 3. Kiến thức rút ra
+
+### Controller, action, view và route
+- **Controller** là một class Ruby kế thừa `ApplicationController` (`<`), nên tự có sẵn hành vi của Rails.
+- Mỗi **action** là một method trong controller. Action rỗng vẫn chạy được vì Rails theo **convention**: action tên gì thì tự render view tên đó (`home` → `home.html.erb`).
+- Thêm một trang tĩnh mới cần đủ bộ ba **route → action → view**.
+- Route `get 'static_pages/home'` nghĩa là: request **GET** tới `/static_pages/home` sẽ chuyển cho action `home`, đồng thời tạo helper `static_pages_home_url` dùng trong test.
+- Root route (`root 'static_pages#home'`) là route cho URL `/`, tạo helper `root_url`.
+
+### Generate và destroy
+- Tên controller viết **CamelCase** (`StaticPages`) hay **snake_case** (`static_pages`) đều cho kết quả giống nhau; Rails đổi bằng method `underscore`.
+- `rails destroy` hoàn tác `rails generate` và dọn cả các dòng đã thêm vào `routes.rb`, nên không nên xóa file bằng tay.
+- `destroy model User` không cần `name:string email:string` vì các tham số này chỉ quyết định nội dung file (cột trong migration), còn tên và vị trí file chỉ phụ thuộc vào `User`. Với controller thì phải truyền lại tên action vì nó quyết định các dòng route cần gỡ.
+- Hoàn tác database: `db:rollback` (lùi 1 bước), `db:migrate VERSION=0` (về trạng thái ban đầu). Khi xóa model đã migrate, phải **rollback trước, destroy sau**.
+
+### HTTP verb
+| Verb | Ý nghĩa |
+|---|---|
+| GET | Đọc dữ liệu (mở một trang) |
+| POST | Gửi dữ liệu để tạo mới (submit form) |
+| PATCH | Cập nhật dữ liệu |
+| DELETE | Xóa dữ liệu |
+
+Trình duyệt chỉ gửi native được GET và POST; Rails dùng trường ẩn `_method` để giả lập PATCH và DELETE.
+
+### Test tự động và TDD
+- **Lợi ích:** chống regression (tính năng cũ bị hỏng), dám refactor, và test đóng vai "người dùng đầu tiên" của code nên giúp nhìn ra thiết kế.
+- **TDD:** viết test fail (**Red**) → viết code cho pass (**Green**) → dọn code mà vẫn xanh (**Refactor**). Test từng đỏ rồi mới xanh thì mới chắc nó thực sự kiểm tra đúng thứ cần kiểm tra (bài tập root route).
+- **Khi nào viết test trước:** test ngắn hơn code; liên quan bảo mật; sửa bug (viết test tái hiện bug trước); trước khi refactor. **Viết code trước** khi chưa rõ hành vi mong muốn. **Hạn chế test** với code hay đổi như cấu trúc HTML chi tiết.
+- Thứ tự thường dùng: controller/model test trước, integration test sau.
+- Cú pháp test: `get <url>` giả lập request GET; `assert_response :success` kiểm tra HTTP 200; `assert_select "title", "..."` kiểm tra thẻ HTML có nội dung đúng như mong đợi.
+- `setup` là method chạy tự động trước mỗi test; biến `@base_title` (instance variable) dùng chung cho các test, chèn vào chuỗi bằng **string interpolation** `#{@base_title}` (chỉ hoạt động với dấu nháy kép).
+
+### Embedded Ruby (ERb) và Layout
+- **ERb** là lý do file có đuôi `.html.erb`: `<% ... %>` chỉ **chạy** code, `<%= ... %>` chạy code và **chèn kết quả** vào trang.
+- `provide(:title, "Home")` ở view gắn giá trị cho nhãn `:title`; `yield(:title)` ở layout lấy giá trị đó ra.
+- **Layout** (`application.html.erb`) chứa khung HTML dùng chung; `<%= yield %>` là chỗ Rails chèn nội dung từng view. Layout còn nạp stylesheet, JavaScript, và các thẻ bảo mật chống **CSRF** (`csrf_meta_tags`) và **XSS** (`csp_meta_tag`).
+- Nguyên tắc **DRY (Don't Repeat Yourself)**: mỗi thông tin chỉ nên nằm ở một chỗ. Ở đây, khung HTML và base title lặp 3 lần được gom về 1 chỗ trong layout. Cách làm là đưa 3 trang về cùng cấu trúc trước, rồi mới gộp một lần.
+- Tạm đổi tên layout (`mv ... layout_file`) để thấy rõ sự lặp lại giữa các trang và hiểu layout sinh ra để làm gì.
+- Test xanh sau refactor không chứng minh code đúng 100%, nhưng tăng mạnh độ tin cậy mà không phải mở từng trang kiểm tra bằng mắt.
+
+### Các lệnh viết tắt
+`rails s` (server), `rails c` (console), `rails g` (generate), `rails t` (test), `bundle` (bundle install).
+
+### Khác biệt giữa sách (Rails 6) và thực tế (Rails 8)
+- Rails 8 dùng **Importmap** thay Webpacker, nên layout không còn `javascript_pack_tag`; giữ nguyên các dòng Rails 8 sinh ra, chỉ sửa dòng `<title>`.
+- Output của `rails generate` có thể không còn bước `assets/scss` như sách.
+- Sách viết cho Rails 6 nên một số cấu hình trong 3.6 (Spring trong Guardfile) có thể không còn phù hợp.
+
+---
+
+## 4. Các bước đã thực hiện
 
 ### 3.1. Set up project
 - Tạo `sample_app`, thêm README, commit và push lên GitHub.
@@ -296,57 +347,6 @@ Vòng lặp: **đọc lỗi → sửa đúng chỗ lỗi chỉ ra → chạy l�
 
 ---
 
-## 4. Kiến thức rút ra
-
-### 4.1. Controller, action, view và route
-- **Controller** là một class Ruby kế thừa `ApplicationController` (`<`), nên tự có sẵn hành vi của Rails.
-- Mỗi **action** là một method trong controller. Action rỗng vẫn chạy được vì Rails theo **convention**: action tên gì thì tự render view tên đó (`home` → `home.html.erb`).
-- Thêm một trang tĩnh mới cần đủ bộ ba **route → action → view**.
-- Route `get 'static_pages/home'` nghĩa là: request **GET** tới `/static_pages/home` sẽ chuyển cho action `home`, đồng thời tạo helper `static_pages_home_url` dùng trong test.
-- Root route (`root 'static_pages#home'`) là route cho URL `/`, tạo helper `root_url`.
-
-### 4.2. Generate và destroy
-- Tên controller viết **CamelCase** (`StaticPages`) hay **snake_case** (`static_pages`) đều cho kết quả giống nhau; Rails đổi bằng method `underscore`.
-- `rails destroy` hoàn tác `rails generate` và dọn cả các dòng đã thêm vào `routes.rb`, nên không nên xóa file bằng tay.
-- `destroy model User` không cần `name:string email:string` vì các tham số này chỉ quyết định nội dung file (cột trong migration), còn tên và vị trí file chỉ phụ thuộc vào `User`. Với controller thì phải truyền lại tên action vì nó quyết định các dòng route cần gỡ.
-- Hoàn tác database: `db:rollback` (lùi 1 bước), `db:migrate VERSION=0` (về trạng thái ban đầu). Khi xóa model đã migrate, phải **rollback trước, destroy sau**.
-
-### 4.3. HTTP verb
-| Verb | Ý nghĩa |
-|---|---|
-| GET | Đọc dữ liệu (mở một trang) |
-| POST | Gửi dữ liệu để tạo mới (submit form) |
-| PATCH | Cập nhật dữ liệu |
-| DELETE | Xóa dữ liệu |
-
-Trình duyệt chỉ gửi native được GET và POST; Rails dùng trường ẩn `_method` để giả lập PATCH và DELETE.
-
-### 4.4. Test tự động và TDD
-- **Lợi ích:** chống regression (tính năng cũ bị hỏng), dám refactor, và test đóng vai "người dùng đầu tiên" của code nên giúp nhìn ra thiết kế.
-- **TDD:** viết test fail (**Red**) → viết code cho pass (**Green**) → dọn code mà vẫn xanh (**Refactor**). Test từng đỏ rồi mới xanh thì mới chắc nó thực sự kiểm tra đúng thứ cần kiểm tra (bài tập root route).
-- **Khi nào viết test trước:** test ngắn hơn code; liên quan bảo mật; sửa bug (viết test tái hiện bug trước); trước khi refactor. **Viết code trước** khi chưa rõ hành vi mong muốn. **Hạn chế test** với code hay đổi như cấu trúc HTML chi tiết.
-- Thứ tự thường dùng: controller/model test trước, integration test sau.
-- Cú pháp test: `get <url>` giả lập request GET; `assert_response :success` kiểm tra HTTP 200; `assert_select "title", "..."` kiểm tra thẻ HTML có nội dung đúng như mong đợi.
-- `setup` là method chạy tự động trước mỗi test; biến `@base_title` (instance variable) dùng chung cho các test, chèn vào chuỗi bằng **string interpolation** `#{@base_title}` (chỉ hoạt động với dấu nháy kép).
-
-### 4.5. Embedded Ruby (ERb) và Layout
-- **ERb** là lý do file có đuôi `.html.erb`: `<% ... %>` chỉ **chạy** code, `<%= ... %>` chạy code và **chèn kết quả** vào trang.
-- `provide(:title, "Home")` ở view gắn giá trị cho nhãn `:title`; `yield(:title)` ở layout lấy giá trị đó ra.
-- **Layout** (`application.html.erb`) chứa khung HTML dùng chung; `<%= yield %>` là chỗ Rails chèn nội dung từng view. Layout còn nạp stylesheet, JavaScript, và các thẻ bảo mật chống **CSRF** (`csrf_meta_tags`) và **XSS** (`csp_meta_tag`).
-- Nguyên tắc **DRY (Don't Repeat Yourself)**: mỗi thông tin chỉ nên nằm ở một chỗ. Ở đây, khung HTML và base title lặp 3 lần được gom về 1 chỗ trong layout. Cách làm là đưa 3 trang về cùng cấu trúc trước, rồi mới gộp một lần.
-- Tạm đổi tên layout (`mv ... layout_file`) để thấy rõ sự lặp lại giữa các trang và hiểu layout sinh ra để làm gì.
-- Test xanh sau refactor không chứng minh code đúng 100%, nhưng tăng mạnh độ tin cậy mà không phải mở từng trang kiểm tra bằng mắt.
-
-### 4.6. Các lệnh viết tắt
-`rails s` (server), `rails c` (console), `rails g` (generate), `rails t` (test), `bundle` (bundle install).
-
-### 4.7. Khác biệt giữa sách (Rails 6) và thực tế (Rails 8)
-- Rails 8 dùng **Importmap** thay Webpacker, nên layout không còn `javascript_pack_tag`; giữ nguyên các dòng Rails 8 sinh ra, chỉ sửa dòng `<title>`.
-- Output của `rails generate` có thể không còn bước `assets/scss` như sách.
-- Sách viết cho Rails 6 nên một số cấu hình trong 3.6 (Spring trong Guardfile) có thể không còn phù hợp.
-
----
-
 ## 5. Khó khăn và cách giải quyết
 
 | Vấn đề | Nguyên nhân | Cách giải quyết |
@@ -365,10 +365,6 @@ Trình duyệt chỉ gửi native được GET và POST; Rails dùng trường �
 - [x] Đặt root route và viết test cho root route
 - [x] Hoàn thành các bài tập của chương
 - [x] 3.6 Advanced testing setup (minitest reporters, Guard)
-
-### Câu hỏi cho mentor
-- Trong dự án thực tế, team có viết test cho cả view/title như trong sách, hay chỉ test controller/model? Theo Box 3.3 thì code hay thay đổi nên hạn chế test.
-- Team có dùng Guard hoặc công cụ tự chạy test tương tự không, hay chạy `rails test` thủ công và để CI lo?
 
 ### Kế hoạch tiếp theo
 - Chapter 4: Rails-flavored Ruby
