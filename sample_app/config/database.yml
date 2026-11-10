@@ -1,3 +1,19 @@
+<<<<<<< HEAD
+# SQLite. Versions 3.8.0 and up are supported.
+#   gem install sqlite3
+#
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem "sqlite3"
+#
+default: &default
+  adapter: sqlite3
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+
+development:
+  <<: *default
+  database: storage/development.sqlite3
+=======
 # MySQL. Versions 5.5.8 and up are supported.
 #
 # Install the MySQL driver
@@ -6,32 +22,53 @@
 # Ensure the MySQL gem is defined in your Gemfile
 #   gem "mysql2"
 #
-# And be sure to use new-style password hashing:
-#   https://dev.mysql.com/doc/refman/5.7/en/password-hashing.html
+# Connection settings are read from environment variables so that each
+# developer (and CI) can use their own MySQL credentials:
+#   DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD
 #
 default: &default
   adapter: mysql2
   encoding: utf8mb4
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: <%= ENV.fetch("DB_USERNAME") { "root" } %>
-  password: <%= ENV.fetch("DB_PASSWORD") { "" } %>
   host: <%= ENV.fetch("DB_HOST") { "127.0.0.1" } %>
   port: <%= ENV.fetch("DB_PORT") { 3306 } %>
+  username: <%= ENV.fetch("DB_USERNAME") { "root" } %>
+  password: <%= ENV["DB_PASSWORD"] %>
 
 development:
   <<: *default
   database: sample_app_development
+>>>>>>> f7514a581dbe7d4adb3d9dada5bfd3c6ee419107
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
+<<<<<<< HEAD
+  database: storage/test.sqlite3
+
+# Store production database in the storage/ directory, which by default
+# is mounted as a persistent Docker volume in config/deploy.yml.
+production:
+  primary:
+    <<: *default
+    database: storage/production.sqlite3
+  cache:
+    <<: *default
+    database: storage/production_cache.sqlite3
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *default
+    database: storage/production_queue.sqlite3
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *default
+    database: storage/production_cable.sqlite3
+=======
   database: sample_app_test
 
-# As with config/credentials.yml, you never want to store sensitive information,
-# like your database password, in your source code. Set DB_USERNAME, DB_PASSWORD
-# and DB_HOST as environment variables on the production server instead.
+# Production credentials come from ENV (see .kamal/secrets), never from this file.
 production:
   primary: &primary_production
     <<: *default
@@ -47,4 +84,5 @@ production:
   cable:
     <<: *primary_production
     database: sample_app_production_cable
+>>>>>>> f7514a581dbe7d4adb3d9dada5bfd3c6ee419107
     migrations_paths: db/cable_migrate
